@@ -19,15 +19,21 @@
   .category{
     position: absolute;
     padding: 0 20px;
-    right: 0;
+    right: 100px;
     a{
       text-decoration: none;
       margin: 3px;
+      line-height: 60px;
+      font-size: 20px;
+      color: rgba(0,0,0,0.4);
+      &:hover{
+        color: rgba(0,0,0,0.6);
+      }
     }
   }
 }
 .content{
-  width: 500px;
+  width: 800px;
   margin: 0 auto;
 }
 </style>

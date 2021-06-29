@@ -12,6 +12,7 @@
     a{
       text-decoration: none;
       font-size: 20px;
+      color: rgba(0,0,0,0.8);
     }
   }
   
