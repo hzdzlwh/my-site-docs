@@ -1,7 +1,7 @@
 <template>
   <ul>
     <li class="item">
-      <a href="./context-clouser">作用域和闭包</a>
+      <a href="./clouser">作用域和闭包</a>
     </li>
   </ul>
 </template>

@@ -1,5 +1,5 @@
 module.exports = {
-  title: 'Hello VuePress',
+  title: 'JS',
   description: 'Just playing around',
   markdown: {
     anchor: {
