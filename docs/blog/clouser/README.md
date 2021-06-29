@@ -1,5 +1,5 @@
 ---
-title: hello
+title: 闭包
 permalink: /:year/:month/:day/:slug/
 date: 2021-06-28
 ---
