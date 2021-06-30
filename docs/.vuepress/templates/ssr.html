@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <title>{{ title }}</title>
+    <meta name="generator" content="VuePress {{ version }}">
+    {{{ userHeadTags }}}
+    {{{ pageMeta }}}
+    {{{ canonicalLink }}}
+    {{{ renderResourceHints() }}}
+    {{{ renderStyles() }}}
+  </head>
+  <body>
+    <!--vue-ssr-outlet-->
+    {{{ renderScripts() }}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.0/prism.min.js"></script>
+  </body>
+</html>

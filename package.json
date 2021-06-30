@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "less": "^4.1.1",
-    "less-loader": "5.0.0"
+    "less-loader": "5.0.0",
+    "markdown-it": "^12.0.6"
   }
 }
