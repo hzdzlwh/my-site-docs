@@ -133,6 +133,85 @@ function wait(message) {
 wait()
 ```
 
+### 换汤不换药
+
+React hooks 中的闭包
+
+useEffect 中的闭包
+
+``` js
+function WatchCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(function() {
+    setInterval(function log() {
+      console.log(`Count is: ${count}`);
+    }, 2000);
+  }, []);
+
+  return (
+    <div>
+      {count}
+      <button onClick={() => setCount(count + 1) }>
+        Increase
+      </button>
+    </div>
+  );
+}
+```
+
+多次点击button后，控制台的打印Count is 0, 实际上count已经被加了多次
+
+为什么会这样呢？
+
+在第一次渲染的时候count被初始化为0，组件被挂载后，useEffect调用setInterval(log, 2000)每隔2秒打印一次，闭包log捕获的count变量是0。即使count被增加多次，log闭包函数仍旧使用count=0的初始化渲染的值。
+
+修复上面的问题
+
+``` js
+useEffect(function() {
+  const id = setInterval(function log() {
+    console.log(`Count is: ${count}`);
+  }, 2000);
+  return function() {
+    clearInterval(id);
+  }
+}, [count]);
+```
+
+正确的设置依赖，useEffect随着count变化更新闭包
+
+useState 中的闭包
+
+``` js
+function DelayedCount() {
+  const [count, setCount] = useState(0);
+
+  function handleClickAsync() {
+    setTimeout(function delay() {
+      setCount(count + 1);
+    }, 1000);
+  }
+
+  return (
+    <div>
+      {count}
+      <button onClick={handleClickAsync}>Increase async</button>
+    </div>
+  );
+}
+```
+
+快速点击button两次，count的值仍旧是1，而不是2
+
+每次点击后延迟1秒调用delay函数，delay函数捕获的count始终是0，两个delay函数都是闭包，更新相同的value：setCount(count + 1) = setCount(0 + 1) = setCount(1)，两次点击后的闭包delay捕获的仍旧是更新前的count：0
+
+为了修复这个问题，我们用函数的方式setCount(count => count + 1)更新count， 回调函数返回一个新的state依据之前的state。
+
+### reference
+
+[1] 《你不知道的Javascript系列》
+
 
 
 
