@@ -9,8 +9,8 @@
     
     <meta name="description" content="Just playing around">
     
-    <link rel="preload" href="/assets/css/0.styles.55a0a04e.css" as="style"><link rel="preload" href="/assets/js/app.1ed97ff5.js" as="script"><link rel="preload" href="/assets/js/4.ec535a3a.js" as="script"><link rel="preload" href="/assets/js/8.48bd7125.js" as="script"><link rel="prefetch" href="/assets/js/2.ac86bad6.js"><link rel="prefetch" href="/assets/js/3.36fe6f2b.js"><link rel="prefetch" href="/assets/js/5.c9f25586.js"><link rel="prefetch" href="/assets/js/6.15989a96.js"><link rel="prefetch" href="/assets/js/7.97ccd650.js"><link rel="prefetch" href="/assets/js/9.17080c44.js">
-    <link rel="stylesheet" href="/assets/css/0.styles.55a0a04e.css">
+    <link rel="preload" href="/assets/css/0.styles.218ee5c2.css" as="style"><link rel="preload" href="/assets/js/app.eb0a009c.js" as="script"><link rel="preload" href="/assets/js/4.4df9e2e5.js" as="script"><link rel="preload" href="/assets/js/8.c654bf7c.js" as="script"><link rel="prefetch" href="/assets/js/10.9a381b3f.js"><link rel="prefetch" href="/assets/js/2.a64c6f1f.js"><link rel="prefetch" href="/assets/js/3.17dfdd0e.js"><link rel="prefetch" href="/assets/js/5.c9f25586.js"><link rel="prefetch" href="/assets/js/6.ee3d5a01.js"><link rel="prefetch" href="/assets/js/7.adab09cf.js"><link rel="prefetch" href="/assets/js/9.2401e79e.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.218ee5c2.css">
   </head>
   <body>
     <div id="app" data-server-rendered="true"><div data-v-6cecd4a2><header class="header" data-v-6cecd4a2><div class="category" data-v-6cecd4a2><a href="/blog" data-v-6cecd4a2>Blog</a> <a href="/think" data-v-6cecd4a2>Think</a></div></header> <div class="content" data-v-6cecd4a2><div class="content__default" data-v-6cecd4a2><h2 id="作用域和闭包">作用域和闭包</h2> <p>作用域和闭包是JS中非常重要的概念，两者又是密不可分的，理解闭包必须从理解作用域开始</p> <h3 id="作用域是什么">作用域是什么</h3> <p>作用域是一套规则，这套规则规定了变量存储在哪？程序需要时如何找到它们？</p> <p>作用域有两种主要的工作模型，第一种最为普遍，被大多数编程语言所采用的词法作用域，JS正式采用的词法作用域。另一种叫做动态作用域，仍有一些编程语言在使用，比如Bash脚本</p> <p>理解词法作用域需要知道编译原理，一段源代码在执行前会经历三个步骤，统称为编译</p> <ul><li>分词/词法分析（Tokenizing/Lexing）</li></ul> <blockquote><p>这个过程会将由字符组成的字符串分解成有意义的代码块，这些代码块被称为词法单元，例如：var a = 2; 这行代码通常会被分解成下面词法单元：var、a、=、2、;。</p></blockquote> <ul><li>解析/语法分析（Parsing）</li></ul> <blockquote><p>这个过程是将词法单元转换成一个由元素逐级嵌套所组成的代表了程序语法结构的树，这个树被称为 “抽象语法树”（Abstract Syntax Tree, AST）</p></blockquote> <ul><li>代码生成</li></ul> <blockquote><p>将AST转换为可执行代码的过程被称为代码生成。这个过程于语言、目标平台等信息相关。</p></blockquote> <p>简单来说，词法作用域就是定义在词法阶段的作用域。换句话说，词法作用域是由你在写代码时将变量和块作用域写在哪里来决定的，因此词法分析处理代码时会保持作用域不变</p> <h3 id="小试牛刀">小试牛刀</h3> <p>考虑以下代码：</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">function</span> <span class="token function">foo</span><span class="token punctuation">(</span><span class="token parameter">a</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -117,7 +117,7 @@ funtion <span class="token function">bar</span><span class="token punctuation">(
   <span class="token punctuation">}</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span>
 </code></pre></div><p>value是函数中的一个形参，属于私有变量，但是为什么在外部可以使用value, 或给vulue赋值呢？</p> <p>根据闭包的特性，内层函数可以引用外层函数的变量，当存在这种引用关系的时候，变量不会垃圾回收机制回收，当你获取这个变量的时候实际上调用的是内层的get函数，当你设置这个变量时实际上调用的是set函数，都是对value形参的操作</p> <h3 id="reference">reference</h3> <p>[1] 《你不知道的Javascript系列》</p></div></div></div><div class="global-ui"></div></div>
-    <script src="/assets/js/app.1ed97ff5.js" defer></script><script src="/assets/js/4.ec535a3a.js" defer></script><script src="/assets/js/8.48bd7125.js" defer></script>
+    <script src="/assets/js/app.eb0a009c.js" defer></script><script src="/assets/js/4.4df9e2e5.js" defer></script><script src="/assets/js/8.c654bf7c.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.0/prism.min.js"></script>
   </body>
 </html>
