@@ -16,6 +16,7 @@ export default {
       blogList: [
         { path: './clouser', title: '作用域和闭包', date: 'June 10', readingTime: '20min' },
         { path: './this', title: 'this全面解析', date: 'July 13', readingTime: '15min' },
+        { path: './vue-reactivity', title: 'Vue响应式原理', date: 'July 17', readingTime: 'xxmin' },
       ]
     }
   }
@@ -27,7 +28,7 @@ export default {
   margin-top: 50px;
   .item{
     list-style: none;
-    margin: 12px 0;
+    margin: 16px 0;
     a{
       text-decoration: none;
       font-size: 18px;
