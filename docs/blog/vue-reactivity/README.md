@@ -244,8 +244,342 @@ pushTarget就是把 Watcher 实例赋值给 Dep.target，所以上面依赖收�
 Vue2 响应式涉及到三个类，Observer，Dep， Watcher
 
 Observer：每一个对象都会生成一个 Observer 实例，Observer 中保存一个dep属性，用于对象级别的响应式处理
+
 Dep：在 Object.defineProperty 的 get 中收集依赖，在set中发布订阅
+
 Watcher：用来保存组件更新函数，也就是作为依赖被收集
+
+## Vue3 数据响应式原理分析
+
+Vue2 用的是 Object.defineProperty 对对象的属性拦截，Vue3 中用的 Proxy。
+
+Vue2 中数据响应式的缺点是：
+
+1. 数组的响应式需要额外实现
+2. 新增或删除属性无法监听，需要使用Vue.set，Vue.delete
+3. 不支持Map，Set，Class等数据结构
+
+Vue3 中使用 Proxy() 很好的解决了上面的问题。
+
+下面我们仿照Vue3的响应式原理，自己实现一个
+
+第一步：实现数据的响应式
+
+``` js
+const isObject = v => typeof v === 'object'
+
+function reactive(obj) {
+  if (!isObject(obj)) {
+    return obj
+  }
+  
+  return new Proxy(obj, {
+    get(target, key) {
+      const res = Reflect.get(target, key)
+      return isObject(res) ? reactive(res) : res
+    },
+    set(target, key, val) {
+      const res = Reflect.set(target, key, val)
+      return res
+    },
+    deleteProperty(target, key) {
+      const res = Reflect.deleteProperty(target, key)
+      return res
+    }
+  })
+}
+```
+
+第二步：依赖收集
+
+Vue3 中的依赖收集先通过一张图理解一下
+
+![alt 属性文本](./v3.png)
+
++ effect(cb): 传入fn，返回的函数将是响应式的，内部代理的数据发生变化，它会再次执行
++ track(target, key): 建立响应式函数与其访问的目标（target）和键（key）之间的映射关系
++ trigger(arget, key): 根据track()建⽴的映射关系，找到对应响应式函数并执⾏它
+
+下面我们用代码实现
+
+``` js
+// 保存依赖关系数据结构
+const targetMap = new WeakMap()
+
+// 建立副作用
+function effect(fn) {
+  const e = createReactiveEffect(fn)
+  e()
+  return e
+}
+
+function createReactiveEffect(fn) {
+  const effect = function () {
+    try {
+      effectStack.push(fn)
+      return fn()
+    } finally {
+      effectStack.pop()
+    }
+  }
+  return effect
+}
+
+// 依赖收集：建立target,key和fn之间映射关系
+function track(target, key){
+  const effect = effectStack[effectStack.length - 1]
+  if(effect) {
+    let depMap = targetMap.get(target)
+    if (!depMap) {
+      depMap = new Map()
+      targetMap.set(target, depMap)
+    }
+
+    let deps = depMap.get(key)
+    if (!deps) {
+      deps = new Set()
+      deps.set(key, deps)
+    }
+
+    deps.add(effect)
+  }
+}
+
+// 触发副作用：根据target,key获取相关fns，执行它们
+function trigger(target, key){
+  const depMap = targetMap.get(target)
+
+  if (depMap) {
+    const deps = depMap.get(key)
+
+    if (deps) {
+      deps.forEach(dep => dep())
+    }
+  }
+}
+```
+
+track() 要在上面的 get() 中调用
+
+``` js
+get(target, key) {
+  const res = Reflect.get(target, key)
+  track(target, key)
+  return isObject(res) ? reactive(res) : res
+}
+```
+
+trigger() 要在 set 中调用
+
+``` js
+set(target, key, val) {
+  const res = Reflect.set(target, key, val)
+  trigger(target, key)
+  return res
+}
+```
+
+## 把上面的两步结合起来实现一个可运行的 Vue3 Demo
+
+
+reactive.js
+
+``` js
+const isObject = v => typeof v === 'object'
+
+function reactive(obj) {
+  if (!isObject(obj)) {
+    return obj
+  }
+  
+  return new Proxy(obj, {
+    // target是被代理的对象
+    get(target, key) {
+      const res = Reflect.get(target, key)
+      track(target, key)
+      return isObject(res) ? reactive(res) : res
+    },
+    set(target, key, val) {
+      const res = Reflect.set(target, key, val)
+      trigger(target, key)
+      return res
+    },
+    deleteProperty(target, key) {
+      const res = Reflect.deleteProperty(target, key)
+      console.log('deleteproperty');
+      trigger(target, key)
+      return res
+    }
+  })
+}
+
+// 临时存储副作用函数
+const effectStack = []
+
+// 建立副作用
+function effect(fn) {
+  const e = createReactiveEffect(fn)
+  e()
+  return e
+}
+
+function createReactiveEffect(fn) {
+  const effect = function () {
+    try {
+      effectStack.push(fn)
+      return fn()
+    } finally {
+      effectStack.pop()
+    }
+  }
+  return effect
+}
+
+// 保存依赖关系数据结构
+const targetMap = new WeakMap()
+
+// 依赖收集：建立target,key和fn之间映射关系
+function track(target, key){
+  const effect = effectStack[effectStack.length - 1]
+  if(effect) {
+    let depMap = targetMap.get(target)
+    if (!depMap) {
+      depMap = new Map()
+      targetMap.set(target, depMap)
+    }
+
+    let deps = depMap.get(key)
+    if (!deps) {
+      deps = new Set()
+      deps.set(key, deps)
+    }
+
+    deps.add(effect)
+  }
+}
+// 触发副作用：根据target,key获取相关fns，执行它们
+function trigger(target, key){
+  const depMap = targetMap.get(target)
+
+  if (depMap) {
+    const deps = depMap.get(key)
+
+    if (deps) {
+      deps.forEach(dep => dep())
+    }
+  }
+}
+```
+
+
+``` html
+<div id="app">
+  <h3>{{title}}</h3>
+</div>
+
+<script src="reactive.js"></script>
+
+<script>
+const Vue = {
+    createApp(options) {
+      // web dom平台
+      const renderer = Vue.createRenderer({
+        querySelector(sel) {
+          return document.querySelector(sel)
+        },
+        insert(child, parent, anchor) {
+          // 不传递anchor，等效于appendChild
+          parent.insertBefore(child, anchor || null)
+        }
+      })
+      return renderer.createApp(options)
+    },
+    createRenderer({querySelector, insert}) {
+      // 返回渲染器
+      return {
+        createApp(options) {
+          // 返回的对象就是app实例
+          return {
+            mount(selector) {
+              const parent = querySelector(selector)
+
+              if (!options.render) {
+                options.render = this.compile(parent.innerHTML)
+              }
+
+              // 处理setup
+              if (options.setup) {
+                this.setupState = options.setup()
+              }
+              if (options.data) {
+                this.data = options.data()
+              }
+
+              this.proxy = new Proxy(this, {
+                get(target, key) {
+                  // 如果setupState中存在key，则用它，否则才使用data中的key
+                  if (key in target.setupState) {
+                    return target.setupState[key]
+                  } else {
+                    return target.data[key]
+                  }
+                },
+                set(target, key, val) {
+                  if (key in target.setupState) {
+                    target.setupState[key] = val
+                  } else {
+                    target.data[key] = val
+                  }
+                },
+              })
+
+              this.update = effect(() => {
+                // 执行render，获取视图结构
+                const el = options.render.call(this.proxy)
+                parent.innerHTML = ''
+                // parent.appendChild(el)
+                insert(el, parent)
+              })
+            },
+            compile(template) {
+              // 编译：
+              // template =》 ast =》 ast => generate render()
+              // 传入template，返回render
+              return function render() {
+                const h3 = document.createElement('h3')
+                h3.textContent = this.title
+                return h3
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<script>
+  const { createApp } = Vue
+  const app = createApp({
+    setup() {
+      const state = reactive({
+        title: 'vue3,hello!'
+      })
+
+      setTimeout(() => {
+        state.title = 'hello'
+      }, 2000);
+      return state
+    }
+  })
+  app.mount('#app')
+</script>
+```
+
+## 总结
+
+Vue3 中用 Proxy() 做响应式数据后，功能更强大，依赖的收集和发布更容易理解。
+
 
  
 
