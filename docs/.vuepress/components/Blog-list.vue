@@ -16,7 +16,8 @@ export default {
       blogList: [
         { path: './clouser', title: '作用域和闭包', date: 'June 10', readingTime: '20min' },
         { path: './this', title: 'this全面解析', date: 'July 13', readingTime: '15min' },
-        { path: './vue-reactivity', title: 'Vue响应式原理', date: 'July 17', readingTime: 'xxmin' },
+        { path: './vue-reactivity', title: 'Vue响应式原理', date: 'July 17', readingTime: '30min' },
+        { path: './prototype', title: 'JavaScript原型，原型链', date: 'July 19', readingTime: '10min' },
       ]
     }
   }
