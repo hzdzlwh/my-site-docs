@@ -259,6 +259,41 @@ value是函数中的一个形参，属于私有变量，但是为什么在外部
 
 根据闭包的特性，内层函数可以引用外层函数的变量，当存在这种引用关系的时候，变量不会垃圾回收机制回收，当你获取这个变量的时候实际上调用的是内层的get函数，当你设置这个变量时实际上调用的是set函数，都是对value形参的操作
 
+
+Redux 源码中的闭包
+
+``` js
+function applyMiddleware(...middlewares) {
+  return (createStore) => (reducer) => {
+    const store = createStore(reducer)
+    let dispatch = store.dispatch
+
+    const midApi = {
+      getState: store.getState,
+      dispatch: (action) => dispatch(action) // 闭包的使用 捕获修改后dispatch
+    }
+    const chain = middlewares.map(middleware => middleware(midApi))
+
+    // 修改后的dispatch
+    dispatch = compose(...chain)(store.dispatch)
+
+    return { ...store, dispatch }
+ }
+}
+```
+
+上面 midApi 中的 dispatch 属性为什么没有写成下面这样呢？
+
+``` js
+const midApi = {
+    getState: store.getState,
+    dispatch: dispatch
+  }
+```
+
+首先要明白 Redux 使用了中间件后目的就是重写 dispatch 方法，要保证传给中间函数（middleware）的 dispatch 都是修改后的 dispath，否则有些中间件可能就不生效，为了保证每次传给中间件函数（middleware）中的 dispatch 都是修改后的 dispatch 这个地方必须写成一个闭包的形式，而不能直接用 store.dispatch。
+
+
 ### reference
 
 [1] 《你不知道的Javascript系列》

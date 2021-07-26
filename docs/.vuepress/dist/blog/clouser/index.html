@@ -9,7 +9,7 @@
     
     <meta name="description" content="Just playing around">
     
-    <link rel="preload" href="/assets/css/0.styles.5cc3e4bc.css" as="style"><link rel="preload" href="/assets/js/app.135a02ac.js" as="script"><link rel="preload" href="/assets/js/4.9d11e099.js" as="script"><link rel="preload" href="/assets/js/10.1ba77863.js" as="script"><link rel="prefetch" href="/assets/js/11.d9f13edc.js"><link rel="prefetch" href="/assets/js/12.bd10f9fd.js"><link rel="prefetch" href="/assets/js/2.0b61298c.js"><link rel="prefetch" href="/assets/js/3.a7fe3543.js"><link rel="prefetch" href="/assets/js/5.0b19ca96.js"><link rel="prefetch" href="/assets/js/6.c815ffe8.js"><link rel="prefetch" href="/assets/js/7.ce120e7b.js"><link rel="prefetch" href="/assets/js/8.8afe282d.js"><link rel="prefetch" href="/assets/js/9.7f780781.js">
+    <link rel="preload" href="/assets/css/0.styles.5cc3e4bc.css" as="style"><link rel="preload" href="/assets/js/app.05b2c82b.js" as="script"><link rel="preload" href="/assets/js/4.9d11e099.js" as="script"><link rel="preload" href="/assets/js/10.e4bfb36d.js" as="script"><link rel="prefetch" href="/assets/js/11.b0a3924f.js"><link rel="prefetch" href="/assets/js/12.0c227968.js"><link rel="prefetch" href="/assets/js/2.0b61298c.js"><link rel="prefetch" href="/assets/js/3.a7fe3543.js"><link rel="prefetch" href="/assets/js/5.0b19ca96.js"><link rel="prefetch" href="/assets/js/6.9e9b137b.js"><link rel="prefetch" href="/assets/js/7.ce120e7b.js"><link rel="prefetch" href="/assets/js/8.f74cbd6e.js"><link rel="prefetch" href="/assets/js/9.d64d8973.js">
     <link rel="stylesheet" href="/assets/css/0.styles.5cc3e4bc.css">
   </head>
   <body>
@@ -116,8 +116,29 @@ funtion <span class="token function">bar</span><span class="token punctuation">(
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span>
-</code></pre></div><p>value是函数中的一个形参，属于私有变量，但是为什么在外部可以使用value, 或给vulue赋值呢？</p> <p>根据闭包的特性，内层函数可以引用外层函数的变量，当存在这种引用关系的时候，变量不会垃圾回收机制回收，当你获取这个变量的时候实际上调用的是内层的get函数，当你设置这个变量时实际上调用的是set函数，都是对value形参的操作</p> <h3 id="reference">reference</h3> <p>[1] 《你不知道的Javascript系列》</p></div></div></div><div class="global-ui"></div></div>
-    <script src="/assets/js/app.135a02ac.js" defer></script><script src="/assets/js/4.9d11e099.js" defer></script><script src="/assets/js/10.1ba77863.js" defer></script>
+</code></pre></div><p>value是函数中的一个形参，属于私有变量，但是为什么在外部可以使用value, 或给vulue赋值呢？</p> <p>根据闭包的特性，内层函数可以引用外层函数的变量，当存在这种引用关系的时候，变量不会垃圾回收机制回收，当你获取这个变量的时候实际上调用的是内层的get函数，当你设置这个变量时实际上调用的是set函数，都是对value形参的操作</p> <p>Redux 源码中的闭包</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">function</span> <span class="token function">applyMiddleware</span><span class="token punctuation">(</span><span class="token parameter"><span class="token operator">...</span>middlewares</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token parameter">createStore</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">(</span><span class="token parameter">reducer</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> store <span class="token operator">=</span> <span class="token function">createStore</span><span class="token punctuation">(</span>reducer<span class="token punctuation">)</span>
+    <span class="token keyword">let</span> dispatch <span class="token operator">=</span> store<span class="token punctuation">.</span>dispatch
+
+    <span class="token keyword">const</span> midApi <span class="token operator">=</span> <span class="token punctuation">{</span>
+      getState<span class="token operator">:</span> store<span class="token punctuation">.</span>getState<span class="token punctuation">,</span>
+      <span class="token function-variable function">dispatch</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token parameter">action</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token function">dispatch</span><span class="token punctuation">(</span>action<span class="token punctuation">)</span> <span class="token comment">// 闭包的使用 捕获修改后dispatch</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">const</span> chain <span class="token operator">=</span> middlewares<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token parameter">middleware</span> <span class="token operator">=&gt;</span> <span class="token function">middleware</span><span class="token punctuation">(</span>midApi<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token comment">// 修改后的dispatch</span>
+    dispatch <span class="token operator">=</span> <span class="token function">compose</span><span class="token punctuation">(</span><span class="token operator">...</span>chain<span class="token punctuation">)</span><span class="token punctuation">(</span>store<span class="token punctuation">.</span>dispatch<span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> <span class="token punctuation">{</span> <span class="token operator">...</span>store<span class="token punctuation">,</span> dispatch <span class="token punctuation">}</span>
+ <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre></div><p>上面 midApi 中的 dispatch 属性为什么没有写成下面这样呢？</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> midApi <span class="token operator">=</span> <span class="token punctuation">{</span>
+    getState<span class="token operator">:</span> store<span class="token punctuation">.</span>getState<span class="token punctuation">,</span>
+    dispatch<span class="token operator">:</span> dispatch
+  <span class="token punctuation">}</span>
+</code></pre></div><p>首先要明白 Redux 使用了中间件后目的就是重写 dispatch 方法，要保证传给中间函数（middleware）的 dispatch 都是修改后的 dispath，否则有些中间件可能就不生效，为了保证每次传给中间件函数（middleware）中的 dispatch 都是修改后的 dispatch 这个地方必须写成一个闭包的形式，而不能直接用 store.dispatch。</p> <h3 id="reference">reference</h3> <p>[1] 《你不知道的Javascript系列》</p></div></div></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.05b2c82b.js" defer></script><script src="/assets/js/4.9d11e099.js" defer></script><script src="/assets/js/10.e4bfb36d.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.0/prism.min.js"></script>
   </body>
 </html>
